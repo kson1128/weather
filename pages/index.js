@@ -1,115 +1,261 @@
-import Head from 'next/head';
-import styles from '../styles/Home.module.css';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import SweetAlert from 'react-bootstrap-sweetalert';
+import fetchWeatherData from '../pages/api/weather';
 
-export default function Home() {
+import {
+  Paper,
+  Button,
+  Container,
+  Divider,
+  Grid,
+  Typography,
+} from '@mui/material';
+import { formatDistanceToNow } from 'date-fns';
+
+export default function Home(props) {
+  const [data, setData] = useState(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [localStorageReadings, setLocalStorageReadings] = useState('');
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [toastNotification, setToastNotification] = useState(false);
+
+  const [toggle, running] = useInterval(async () => {
+    const weatherData = await fetchWeatherData();
+    console.log('weatherData:-->>', weatherData);
+    setData(weatherData);
+  }, 60000);
+
+  const getTemperature = () => {
+    return data
+      ? data.current_weather.temperature + data.daily_units.temperature_2m_max
+      : 'Loading...';
+  };
+
+  const timestamps = data && data.daily.time;
+
+  const formatDatestamp = timestamp => {
+    const date = new Date(timestamp * 1000);
+    const formattedDate = date.toLocaleDateString('en-US');
+    return `${formattedDate} `;
+  };
+
+  const dateStamp =
+    data &&
+    timestamps
+      .slice(0, 5)
+      .map((timestamp, index) => formatDatestamp(timestamp));
+
+  const lastMeasurementTimeStamp = data
+    ? new Date(data.current_weather.time * 1000).toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      })
+    : 'Loading...';
+
+  const getHistoricalData = () => {
+    if (data && Array.isArray(data.daily.temperature_2m_max)) {
+      return data.daily.temperature_2m_max
+        .slice(0, 5)
+        .map((temp, index) => temp + data.daily_units.temperature_2m_max);
+    } else {
+      return [];
+    }
+  };
+
+  const forecastData = () => {
+    if (data && Array.isArray(data.daily.temperature_2m_max)) {
+      return data.daily.temperature_2m_max
+        .slice(5, data.daily.temperature_2m_max.length)
+        .map((temp, index) => temp + data.daily_units.temperature_2m_max);
+    } else {
+      return [];
+    }
+  };
+  const forecastDateStamp =
+    data &&
+    timestamps.slice(5).map((timestamp, index) => formatDatestamp(timestamp));
+
+  const storeSnapshot = () => {
+    const snapshot = {
+      temperature: data.current_weather.temperature,
+      timestamp: data.current_weather.time,
+    };
+    const existingSnapshots =
+      JSON.parse(localStorage.getItem('snapshots')) || [];
+    existingSnapshots.push(snapshot);
+    localStorage.setItem('snapshots', JSON.stringify(existingSnapshots));
+
+    toast.success('successfully stored snapshot');
+  };
+
+  const loadReadings = () => {
+    const storedSnapshots = JSON.parse(localStorage.getItem('snapshots'));
+    const sortedSnapshots = storedSnapshots.sort(
+      (a, b) => b.timestamp - a.timestamp
+    );
+
+    const recentSnapshots = sortedSnapshots.slice(0, 5);
+    setShowAlert(true);
+    setLocalStorageReadings(recentSnapshots);
+  };
+
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <Container maxWidth="sm">
+      {data && (
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Paper elevation={3} sx={{ padding: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                Current Temperature:
+              </Typography>
+              <Typography variant="h3" gutterBottom>
+                {getTemperature()}
+              </Typography>
+              {/* <Typography variant="subtitle1">
+                Last Updated Time:
+                {lastMeasurementTimeStamp}
+              </Typography> */}
+              <Typography variant="subtitle1">
+                Updated:
+                {formatDistanceToNow(currentTime, { addSuffix: true })}
+              </Typography>
+            </Paper>
+            <Button variant="contained" onClick={toggle}>
+              {running ? 'Pause' : 'Resume'}
+            </Button>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom>
+              Historical Chart:
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Paper elevation={3} sx={{ padding: 2 }}>
+              {getHistoricalData().map((item, index) => (
+                <Grid container spacing={2} key={index}>
+                  <Grid item xs={12}>
+                    <Typography variant="body1" gutterBottom>
+                      {dateStamp[index]}
+                    </Typography>
+                    <Typography variant="body1" gutterBottom>
+                      Temperature: {item}
+                    </Typography>
+                  </Grid>
+                  {index < getHistoricalData().length - 1 && (
+                    <Grid item xs={12}>
+                      <Divider sx={{ margin: '16px 0' }} />
+                    </Grid>
+                  )}
+                </Grid>
+              ))}
+            </Paper>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom>
+              7-Day Forecast:
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Paper elevation={3} sx={{ padding: 2 }}>
+              {forecastData().map((item, index) => (
+                <Grid container spacing={2} key={index}>
+                  <Grid item xs={12}>
+                    <Typography variant="body1" gutterBottom>
+                      {forecastDateStamp[index]}
+                    </Typography>
+                    <Typography variant="body1" gutterBottom>
+                      Temperature: {item}
+                    </Typography>
+                  </Grid>
+                  {index < forecastData().length - 1 && (
+                    <Grid item xs={12}>
+                      <Divider sx={{ margin: '16px 0' }} />
+                    </Grid>
+                  )}
+                </Grid>
+              ))}
+            </Paper>
+          </Grid>
+          <Grid item xs={12}>
+            <Button variant="contained" onClick={storeSnapshot}>
+              Store Snapshot
+            </Button>
+            <ToastContainer />
+          </Grid>
+          <Grid item xs={12}>
+            <Button variant="contained" onClick={loadReadings}>
+              Show Readings
+            </Button>
+            {/* Alert box */}
+            <SweetAlert
+              show={showAlert}
+              title="Local Storage Readings"
+              onConfirm={() => setShowAlert(false)}
+            >
+              {Array.isArray(localStorageReadings) ? (
+                localStorageReadings.map((item, index) => (
+                  <div
+                    key={index}
+                    style={{ display: 'flex', alignItems: 'center' }}
+                  >
+                    <span style={{ marginRight: '10px' }}>{index + 1}.</span>
+                    <span style={{ marginRight: '10px' }}>Temperature:</span>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        width: '55px',
+                        textAlign: 'right',
+                        marginRight: '10px',
+                      }}
+                    >
+                      {item.temperature + data.daily_units.temperature_2m_max}
+                    </span>
+                    <span>Date: {formatDatestamp(item.timestamp)}</span>
+                  </div>
+                ))
+              ) : (
+                <div>No readings available.</div>
+              )}
+            </SweetAlert>
+          </Grid>
+        </Grid>
+      )}
+    </Container>
+  );
+}
 
-      <main>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+function useInterval(callback, delay) {
+  const savedCallback = useRef();
+  const intervalId = useRef(null);
+  const [currentDelay, setDelay] = useState(delay);
 
-        <p className={styles.description}>
-          Get started by editing <code>pages/index.js</code>
-        </p>
+  const toggleRunning = useCallback(
+    () => setDelay(currentDelay => (currentDelay === null ? delay : null)),
+    [delay]
+  );
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+  const clear = useCallback(() => clearInterval(intervalId.current), []);
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback]);
 
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+  useEffect(() => {
+    function tick() {
+      savedCallback.current();
+    }
 
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+    if (intervalId.current) clear();
 
-      <footer>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel" className={styles.logo} />
-        </a>
-      </footer>
+    if (currentDelay !== null) {
+      intervalId.current = setInterval(tick, currentDelay);
+    }
 
-      <style jsx>{`
-        main {
-          padding: 5rem 0;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-        }
-        footer {
-          width: 100%;
-          height: 100px;
-          border-top: 1px solid #eaeaea;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-        footer img {
-          margin-left: 0.5rem;
-        }
-        footer a {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          text-decoration: none;
-          color: inherit;
-        }
-        code {
-          background: #fafafa;
-          border-radius: 5px;
-          padding: 0.75rem;
-          font-size: 1.1rem;
-          font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-            DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-        }
-      `}</style>
+    return clear;
+  }, [currentDelay, clear]);
 
-      <style jsx global>{`
-        html,
-        body {
-          padding: 0;
-          margin: 0;
-          font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
-            Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
-            sans-serif;
-        }
-        * {
-          box-sizing: border-box;
-        }
-      `}</style>
-    </div>
-  )
+  return [toggleRunning, !!currentDelay];
 }
