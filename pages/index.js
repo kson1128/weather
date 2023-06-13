@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { formatDistanceToNow } from 'date-fns';
 
-export default function Home(props) {
+export default function Home() {
   const [data, setData] = useState(null);
   const [showAlert, setShowAlert] = useState(false);
   const [localStorageReadings, setLocalStorageReadings] = useState('');
