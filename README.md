@@ -15,6 +15,8 @@ Express: A fast and minimalist web application framework for Node.js, used to ha
 
 Third Party API: The application fetches temperature data from an external weather API.
 
+Material-UI: A popular and widely-used UI library for React applications. I utilized Material-UI to enhance the visual design and user experience of the application. 
+
 
  # Key Features
 
