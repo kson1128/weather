@@ -1,8 +1,8 @@
 
-# Weather Temperature Tracker
+# Weather Tracker
 
-Weather Temperature Tracker
-The Weather Temperature Tracker is a web application built using Next.js and React that allows users to track outdoor temperature in real-time and view historical temperature data. 
+Weather Tracker
+The Weather Tracker is a web application built using Next.js and React that allows users to track outdoor temperature in real-time and view historical temperature data. 
 
 
 This application utilizes the following technologies:
@@ -27,7 +27,7 @@ Snapshot Storage: Users can store the current temperature reading by clicking th
 Recent Readings: The application also allows users to view the five most recently stored temperature readings by clicking the "Recent Readings" button.
 ## Getting Started
 
-To run the Weather Temperature Tracker locally, follow these steps:
+To run the Weather Tracker locally, follow these steps:
 
     1. Clone the repository and navigate to the project directory.
     2. Install the project dependencies using Npm install
