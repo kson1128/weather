@@ -25,7 +25,7 @@ export default function Home() {
     const weatherData = await fetchWeatherData();
     console.log('weatherData:-->>', weatherData);
     setData(weatherData);
-  }, 60000);
+  }, 2000);
 
   const getTemperature = () => {
     return data

@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "nodemon express.js",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "dev:start": "next dev"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
