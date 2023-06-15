@@ -19,13 +19,21 @@ export default function Home() {
   const [showAlert, setShowAlert] = useState(false);
   const [localStorageReadings, setLocalStorageReadings] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [toastNotification, setToastNotification] = useState(false);
 
   const [toggle, running] = useInterval(async () => {
     const weatherData = await fetchWeatherData();
     console.log('weatherData:-->>', weatherData);
     setData(weatherData);
-  }, 2000);
+  }, 60000);
+
+  useEffect(() => {
+    const fetchInitialWeatherData = async () => {
+      const weatherData = await fetchWeatherData();
+      setData(weatherData);
+    };
+
+    fetchInitialWeatherData();
+  }, []);
 
   const getTemperature = () => {
     return data
@@ -253,6 +261,13 @@ function useInterval(callback, delay) {
     if (currentDelay !== null) {
       intervalId.current = setInterval(tick, currentDelay);
     }
+
+    if (currentDelay === null) {
+      tick();
+    }
+    // if (currentDelay !== null) {
+    //   intervalId.current = setInterval(tick, currentDelay);
+    // }
 
     return clear;
   }, [currentDelay, clear]);
