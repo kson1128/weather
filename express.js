@@ -19,7 +19,7 @@ app.use(
 app.get('/api/weather', async (req, res) => {
   try {
     const response = await axios.get(
-      'https://api.open-meteo.com/v1/forecast?latitude=40.76&longitude=-73.99&hourly=temperature_2m,cloudcover,is_day&daily=temperature_2m_max,temperature_2m_min&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph&precipitation_unit=inch&timeformat=unixtime&past_days=5&timezone=America%2FNew_York'
+      'https://api.open-meteo.com/v1/forecast?latitude=40.76&longitude=-73.99&hourly=temperature_2m,precipitation,cloudcover,is_day&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph&precipitation_unit=inch&timeformat=unixtime&past_days=5&forecast_days=14&timezone=America%2FNew_York'
     );
     const weatherData = response.data;
 

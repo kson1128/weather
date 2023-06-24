@@ -1,14 +1,17 @@
 import React from 'react';
-import { ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { createTheme } from '@mui/material/styles';
+import { StyledEngineProvider } from '@mui/material';
 import Box from '@mui/material/Box';
+import '../styles/Home.module.css';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 const theme = createTheme();
 
 function MyApp({ Component, pageProps }) {
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <CssBaseline />
       <Box
         sx={{
@@ -20,8 +23,9 @@ function MyApp({ Component, pageProps }) {
         }}
       >
         <Component {...pageProps} />
+        <ToastContainer />
       </Box>
-    </ThemeProvider>
+    </>
   );
 }
 
