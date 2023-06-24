@@ -309,7 +309,6 @@ export default function Home() {
             data,
             forecastData,
             days,
-            dateStamp,
           }}
         />
       </main>

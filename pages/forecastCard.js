@@ -6,6 +6,7 @@ import Typography from '@mui/joy/Typography';
 import { Grid, Paper } from '@mui/material';
 
 export default function ForecastCard({ props }) {
+  let days = props?.days?.slice(5, 12);
   console.log('props in forecast', props);
   return (
     <Grid container key={props.card} xs={12} sm={6} md={14}>
@@ -33,10 +34,10 @@ export default function ForecastCard({ props }) {
           }}
         >
           {props.forecastData()['temperature_2m_max']?.map((item, index) => (
-            <Grid item xs={1.8} sx={{ padding: '0px' }}>
+            <Grid item xs={1.8} sx={{ padding: '0px' }} key={index}>
               <Card sx={{ height: '100%', width: '88%' }}>
                 <Typography variant="body1" gutterBottom>
-                  {props.days[index]} {props.forecastDateStamp[index + 1]}
+                  {days[index]} {props.forecastDateStamp[index + 1]}
                 </Typography>
                 <Typography variant="body1" gutterBottom>
                   Temperature:{' '}
